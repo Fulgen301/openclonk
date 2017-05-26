@@ -5,6 +5,7 @@ local Name = "$Name$";
 local Description = "$Description$";
 local Plane = 480;
 local graphics_index = 0;
+local energy = 100;
 
 // returns the color of the gem (used for effects)
 func GetGemColor()
@@ -12,7 +13,7 @@ func GetGemColor()
 	return RGB(255, 20, 20);
 }
 
-func Initialize()
+func Construction()
 {
 	AddEffect("Sparkle", this, 1, 30 + RandomX(-3, 3), this);
 	graphics_index = Random(4);
@@ -42,6 +43,7 @@ func FxSparkleTimer(target, effect, effect_time)
 
 func IsValuable() { return true; }
 func QueryRebuy() { return true; }
+public func IsCrystal() { return true; }
 
 func OnSale(int to_player, object sale_base)
 {
@@ -55,4 +57,25 @@ func Hit()
 {
 	Sound("Hits::Materials::Glass::GlassHit*");
 	return true;
+}
+
+public func DoEnergy(int energy)
+{
+	this.energy += energy;
+	
+	if (energy > this.Prototype.energy) energy = this.Prototype.energy;
+	
+	var color = ((this.energy * 255) / this.Prototype.energy);
+	
+	this->SetClrModulation(RGB(color, color, color));
+	if (this.energy == 0)
+	{
+		this->RemoveObject();
+	}
+	return this;
+}
+
+public func GetEnergy()
+{
+	return this.energy;
 }
