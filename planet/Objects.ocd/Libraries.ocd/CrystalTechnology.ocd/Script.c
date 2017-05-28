@@ -10,7 +10,7 @@ static g_crystal_tech_producable;
 
 /* Callbacks */
 
-public func AcceptCrystal(object crystal)
+public func AcceptCrystal(proplist crystal)
 {
 	return crystal && crystal->~IsCrystal();
 }
@@ -88,7 +88,7 @@ public func GetCrystals()
 }
 /* Engine callbacks */
 
-public func RejectCollect(object to_collect)
+public func RejectCollect(proplist to_collect)
 {
 	if (_inherited(to_collect, ...)) return true;
 	
