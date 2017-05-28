@@ -1,0 +1,2 @@
+Name=Kristallenergieextrahierer
+Description=Extrahiert Energie aus kristallartigen Objekten, wie Rubinen oder Amethysten.

@@ -14,14 +14,18 @@ local DefaultFlagRadius = 200;
 
 protected func Initialize()
 {
+	_inherited(...);
 	SetAction("Idle");
 	AddTimer(this.Check, 20);
 }
 
 private func Check()
 {
-	if (GetAction() == "Work")
-		return;
+	if (IsWorking() && GetCrystals()[0])
+	{
+		if (GetCrystals()[0]) SetSign(GetCrystals()[0]->GetID());
+	}
+	else SetSign();
 	
 	if (ReadyToAct())
 		RegisterPowerProduction(100);
@@ -31,6 +35,7 @@ public func IsSteadyPowerProducer()	{ return false; }
 public func GetProducerPriority()	{ return 0; }
 public func NeededCrystalEnergy()	{ return 1; }
 public func IsWorking()				{ return GetAction() == "Work"; }
+public func IsContainer()			{ return true; }
 
 public func OnPowerProductionStart(int amount)
 {
@@ -59,11 +64,20 @@ private func Working()
 private func WorkStart()
 {
 	SetGraphics("Working");
+	if (GetCrystals()[0]) SetSign(GetCrystals()[0]->GetID());
 }
 
 private func WorkAbort()
 {
 	SetGraphics("");
+	SetSign();
+}
+
+public func SetSign(proplist def)
+{
+	if (!def) return SetGraphics("", nil, GFX_Overlay, 4);;
+	SetGraphics("", def, GFX_Overlay, 4);
+	SetObjDrawTransform(300, 0, 0, 0, 300, -15500, GFX_Overlay);
 }
 
 /*-- Properties --*/
@@ -89,7 +103,7 @@ local ActMap = {
 		Directions = 2,
 		FlipDir = 1,
 		Length = 20,
-		Delay = 5,
+		Delay = 8,
 		FacetBase = 1,
 		NextAction = "Work",
 		StartCall = "WorkStart",

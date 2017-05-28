@@ -1,0 +1,2 @@
+Name=Crystal energy extractor
+Description=Extracts energy from crystal-like objects, such as ruby or amethysts.
