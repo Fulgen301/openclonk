@@ -1,5 +1,6 @@
 [Head]
 Version=8
+NoInitialize=true
 
 [Game]
 Mode=Unspecified

@@ -1,4 +1,4 @@
-//Some cool effekts when the nugget is collected
+//Some cool effects when the nugget is collected
 
 
 #appendto Nugget
@@ -7,7 +7,23 @@ public func Entrance(object container)
 {
 	if (container && container->~IsClonk())
 	{
-		Schedule(CreateObject(Rock,Random(1100)+200), 2, 500);
-		Schedule(FindObject(Find_ID(Rock)), "Explode(100)", 216, 500);
-	}	
+		GameCallEx("OnNuggetCollected", this);
+		AddTimer(this.Distasters, 10);
+	}
+}
+
+public func Departure()
+{
+	RemoveTimer(this.Disasters);
+}
+
+private func Distasters()
+{
+	LaunchMeteor(Random(LandscapeWidth()), 50, RandomX(100, 400), RandomX(-30, 30), RandomX(100, 300));
+	if (Contained() && Contained()->~IsClonk()) Contained()->DoEnergy(-20);
+}
+
+public func Sale(int player)
+{
+	Schedule(nil, "GameOver()", 20);
 }
