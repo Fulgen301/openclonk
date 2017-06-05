@@ -19,7 +19,7 @@ public func Departure()
 
 private func Distasters()
 {
-	Global->CreateObject(Rock, Random(LandscapeWidth()), 50, NO_OWNER)->SetSpeed(RandomX(-30, 30), RandomX(100, 300));
+	Global->CreateObject(Rock, Random(LandscapeWidth()), 120, NO_OWNER)->SetSpeed(RandomX(-30, 30), RandomX(100, 300));
 	if (Contained() && Contained()->~IsClonk()) Contained()->DoEnergy(-20);
 }
 
