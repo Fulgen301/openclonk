@@ -27,3 +27,9 @@ public func Sale(int player)
 {
 	Schedule(nil, "GameOver()", 20);
 }
+
+public func Definition(proplist def)
+{
+	_inherited(def, ...);
+	this.BorderBound = C4D_Border_Sides;
+}

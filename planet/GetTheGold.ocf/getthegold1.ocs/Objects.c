@@ -16,6 +16,7 @@ func InitializeObjects()
 	Sequence001->SetDeactivateAfterAction(true);
 	var Flagpole001 = CreateObject(Flagpole, 436, 151, 0);
 	Flagpole001->SetPosition(436, 151);
+	Flagpole001->SetOwner(0);
 	Flagpole001->MakeInvincible();
 
 	var PlayerStart001 = CreateObject(PlayerStart, 483, 171);
