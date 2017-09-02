@@ -100,6 +100,17 @@ func InitializeEnvironments()
 	lava.mat_mask[Material("DuroLava")+1] = true;
 	//AddEnvironment(lava, 1000); - no music/sound for now
 	
+	var sea = this.env_sea = new Environment
+	{
+		Name = "Sea",
+		CheckPlayer = this.EnvCheck_Sea,
+		min_change_delays = [1, 3],
+		sound = ["Environment::SeaWavesLoopStereo"],
+	};
+	sea.mat_mask = CreateArray();
+	sea.mat_mask[Material("Water")+1] = true;
+	//AddEnvironment(sea, 400);
+	
 	// Underground: Clonk in front of tunnel
 	var underground = this.env_underground = new Environment
 	{
@@ -149,6 +160,7 @@ func InitializeEnvironments()
 		Name = "Day",
 		CheckPlayer = this.EnvCheck_Day,
 		music = "day",
+		sound = ["Environment::BirdAmbient"],
 	};
 	AddEnvironment(day, 0);
 	
@@ -194,6 +206,7 @@ private func ExecutePlayer(int plr, array environments)
 					{
 						// Waited long enough. Activate or deactivate this environment.
 						env.is_active = is_active;
+						env.was_active = was_active;
 						//Log("%s environment: %s set to %v", GetPlayerName(plr), env.Name, is_active);
 					}
 				}
@@ -201,28 +214,47 @@ private func ExecutePlayer(int plr, array environments)
 		}
 		// Sound and music by active environments
 		var has_music = false, sound_modifier = nil;
-		for (var env in environments) if (env.is_active)
+		for (var env in environments)
 		{
-			// Music!
-			if (env.music && !has_music)
-			{
-				this->SetPlayList(env.music, plr, true, 3000, 10000);
-				has_music = true;
-			}
 			// Sound effects like cave reverb etc.
 			if (env.sound_modifier && !sound_modifier) sound_modifier = env.sound_modifier;
-			// Sounds and actions by environment
-			for (var action in env.actions)
+			
+			if (env.sound && GetType(env.sound) == C4V_Array)
 			{
-				if (Random(1000) < action.chance)
+				for (var snd in env.sound)
 				{
-					cursor->Call(action.fn, action.par[0], action.par[1], action.par[2], action.par[3], action.par[4]);
+					if (env.is_active)
+					{
+						Sound(snd, true, nil, plr, nil, nil, nil, sound_modifier);
+					}
+					else if (env.was_active)
+					{
+						cursor->CreateEffect(this.FxSoundShutdown, 1, 1, snd, sound_modifier);
+						env.was_active = false;
+					}
 				}
 			}
-			// Does this stop all other environments?
-			if (env.is_exclusive) break;
+			if (env.is_active)
+			{
+				// Music!
+				if (env.music && !has_music)
+				{
+					this->SetPlayList(env.music, plr, true, 3000, 10000);
+					has_music = true;
+				}
+				// Sounds and actions by environment
+				for (var action in env.actions)
+				{
+					if (Random(1000) < action.chance)
+					{
+						cursor->Call(action.fn, action.par[0], action.par[1], action.par[2], action.par[3], action.par[4]);
+					}
+				}
+				// Does this stop all other environments?
+				if (env.is_exclusive) break;
+			}
 		}
-		// Apply or clear global sound modifier
+		// Apply or clear global sound modifier	
 		SetGlobalSoundModifier(sound_modifier, plr);
 	}
 	return true;
@@ -333,6 +365,40 @@ private func EnvCheck_Lava(object cursor, int x, int y, bool is_current)
 		}
 	}
 	// No lava found
+	return false;
+}
+
+private func EnvCheck_Sea(object cursor, int x, int y, bool is_current)
+{
+	// Check for water.
+	var search_range;
+	if (is_current)
+	{
+		if (this.mat_mask[GetMaterial(this.last_x, this.last_y)+1])
+			if (Distance(this.last_x, this.last_y, x, y) < 200)
+				return true;
+		search_range = 200;
+	}
+	else
+	{
+		search_range = 100;
+	}
+	// Now search for water in search range
+	var ang = Random(360);
+	for (; search_range >= 0; search_range -= 10)
+	{
+		ang += 200;
+		var x2 = x + Sin(ang, search_range);
+		var y2 = y + Cos(ang, search_range);
+		if (this.mat_mask[GetMaterial(x2, y2)+1])
+		{
+			// Water found!
+			this.last_x = x2;
+			this.last_y = y2;
+			return true;
+		}
+	}
+	// No water found
 	return false;
 }
 
@@ -455,8 +521,34 @@ local Environment;
 local Name = "$Name$";
 local Description = "$Description$";
 
-
-
+local FxSoundShutdown = new Effect {
+	volume = 100,
+	
+	Construction = func(string sound, proplist sound_modifier)	{
+		this.sound = sound;
+		this.sound_modifier = sound_modifier;
+	},
+	
+	Effect = func(string new_name, string sound)	{
+		if (sound == this.sound)
+		{
+			if (new_name == this.Name)
+			{
+				return FX_Effect_Deny;
+			}
+			return FX_Effect_Annul;
+		}
+	},
+	
+	Timer = func()	{
+		if (!this.Target) return;
+		Sound(this.sound, true, this.volume--, this.Target->GetOwner(), nil, nil, nil, this.sound_modifier);
+		if (this.volume <= 0)
+		{
+			return FX_Execute_Kill;
+		}
+	}
+};
 
 /**
 	Ambience Objects

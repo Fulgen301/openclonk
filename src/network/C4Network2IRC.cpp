@@ -730,7 +730,7 @@ void C4Network2IRCClient::OnMessage(bool fNotice, const char *szSender, const ch
 			if (SEqualNoCase(Tag.getData(), "FINGER") && !fNotice)
 			{
 				StdStrBuf Answer;
-				Answer = LoadResStr("IDS_PRC_UNREGUSER"); //ToDo: Anser sth. else
+				Answer = LoadResStr("IDS_PRC_UNREGUSER"); //ToDo: Answer sth. else
 
 				Send("NOTICE", FormatString("%s :%cFINGER %s%c",
 				                            Sender.getData(), X_DELIM,
@@ -790,7 +790,12 @@ void C4Network2IRCClient::PushMessage(C4Network2IRCMessageType eType, const char
 		PopMessage();
 	// Notify
 	if (pNotify)
+	{
 		pNotify->PushEvent(Ev_IRC_Message, this);
+#ifndef USE_CONSOLE
+		StartSoundEffect("UI::ChatHighlight");
+#endif
+	}
 }
 
 C4Network2IRCChannel *C4Network2IRCClient::AddChannel(const char *szName)
